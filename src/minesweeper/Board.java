@@ -74,7 +74,6 @@ public class Board {
             settedMines.add(new Point(randomPosX, randomPosY));
 
             if (random.nextDouble() <= 0.9) {
-                // Gerar uma bomba adjacente em uma posição adjacente aleatória
                 List<Point> adjacentPositions = getAdjacentPositions(new Point(randomPosX, randomPosY));
                 if (!adjacentPositions.isEmpty()) {
                     int randomIndex;
@@ -193,10 +192,14 @@ public class Board {
     }
 
     public int getMineCount() {
-        return mineCount;
+        return settedMines.size();
     }
 
     public List<Point> getSettedMines() {
         return settedMines;
+    }
+
+    public boolean gameWin(int cellsRevealed) {
+        return cellsRevealed == ((sizeX * sizeY) - settedMines.size());
     }
 }

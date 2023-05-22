@@ -25,11 +25,12 @@ public class GUI extends javax.swing.JFrame {
 
     private Board game;
     private CellMap[][] map;
-    private boolean running;
+    private boolean running, gameOver;
     private int sizeX = defaultSize;
     private int sizeY = defaultSize;
     private int level = 60;
     private int flagsCount;
+    private int cellsRevealed;
 
     public GUI() {
         initComponents();
@@ -91,7 +92,7 @@ public class GUI extends javax.swing.JFrame {
 
         buttonGroup.add(radioButtonNormal);
         radioButtonNormal.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        radioButtonNormal.setText("Média");
+        radioButtonNormal.setText("Médio");
 
         buttonGroup.add(radioButtonHard);
         radioButtonHard.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
@@ -247,8 +248,8 @@ public class GUI extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGap(15, 15, 15)
-                        .addComponent(labelFlags, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(labelFlags, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(buttonClose)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(buttonStartGame)
@@ -264,9 +265,9 @@ public class GUI extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(tabbedPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 488, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(separatorMainPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 12, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(buttonNewGame)
@@ -294,11 +295,11 @@ public class GUI extends javax.swing.JFrame {
         if (running) {
             running = false;
         }
+        labelFlags.setText("");
 
         setGameSettings();
         createBoard();
-        
-        flagsCount = game.getMineCount();
+
         tabbedPanel.setSelectedComponent(panelGame);
     }//GEN-LAST:event_buttonStartGameActionPerformed
 
@@ -324,11 +325,11 @@ public class GUI extends javax.swing.JFrame {
             setGamePanelSize();
             if (game != null) {
                 labelFlags.setVisible(true);
-                updateFlagCount(false);
             } else {
                 labelFlags.setVisible(false);
             }
         }
+        this.requestFocusInWindow();
     }//GEN-LAST:event_tabbedPanelStateChanged
 
     private void setCustomSettingsVisibility(boolean visible) {
@@ -375,13 +376,15 @@ public class GUI extends javax.swing.JFrame {
         if (textFXValue.equals("")) {
             sizeX = defaultSize;
         } else {
-            sizeX = Integer.min(Integer.parseInt(textFXValue), 21);
+            sizeX = Integer.max(Integer.min(Integer.parseInt(textFXValue), 21), 10);
+            textFieldLengthX.setText(Integer.toString(sizeX));
         }
 
         if (textFYValue.equals("")) {
             sizeY = defaultSize;
         } else {
-            sizeY = Integer.min(Integer.parseInt(textFYValue), 21);
+            sizeY = Integer.max(Integer.min(Integer.parseInt(textFXValue), 21), 10);
+            textFieldLengthY.setText(Integer.toString(sizeY));
         }
 
         level = sliderLevel.getValue();
@@ -390,7 +393,9 @@ public class GUI extends javax.swing.JFrame {
     private void createBoard() {
 
         emptyBoard();
-        
+
+        gameOver = false;
+        cellsRevealed = 0;
         game = new Board(sizeX, sizeY);
 
         Cell[][] board = game.get();
@@ -402,7 +407,7 @@ public class GUI extends javax.swing.JFrame {
 
         for (int i = 0; i < gameSizeX; i++) {
             for (int j = 0; j < gameSizeY; j++) {
-                CellMap cm = createBoardCell(panelGame, Color.GRAY, i, j);
+                CellMap cm = createBoardCell(panelGame, Color.GRAY, Color.decode("#b01d06"), i, j);
                 cm.getCellButton().addMouseListener(new MouseAdapter() {
                     @Override
                     public void mouseClicked(MouseEvent e) {
@@ -437,12 +442,13 @@ public class GUI extends javax.swing.JFrame {
         if (game != null) {
             int gameSizeX = game.get().length;
 
-            this.setSize(Integer.max((gameSizeX * cellSize) + 67, 267), 600);
+            this.setSize(Integer.max((gameSizeX * cellSize) + 70, 267), 600);
             panelGame.setSize(10, 10);
+            checkGameState();
         }
     }
 
-    private CellMap createBoardCell(JPanel panel, Color bgColor, int i, int j) {
+    private CellMap createBoardCell(JPanel panel, Color bgColor, Color fgColor, int i, int j) {
         CellMap cm = new CellMap(game.get()[i][j], new Point(i, j));
         map[i][j] = cm;
 
@@ -451,6 +457,7 @@ public class GUI extends javax.swing.JFrame {
         boardCells.addAll(Arrays.asList(cm.getCellButton()));
         cm.getCellButton().setBounds((cellSize * (i + 1)), (cellSize * (j + 1)), cellSize, cellSize);
         cm.getCellButton().setBackground(bgColor);
+        cm.getCellButton().setForeground(fgColor);
         cm.getCellButton().setFont(font);
         panel.add(cm.getCellButton());
 
@@ -482,10 +489,21 @@ public class GUI extends javax.swing.JFrame {
         labelFlags.setText(str.toString());
     }
 
+    private void firstClick(CellMap cm) {
+        running = true;
+        game.setRandomMines(cm.getPosition(), level);
+        flagsCount = game.getMineCount();
+        updateFlagCount(false);
+        printBoard();
+    }
+
     private void cellActionRightClicked(CellMap cm) {
         if (!running) {
-            running = true;
-            game.setRandomMines(cm.getPosition(), level);
+            firstClick(cm);
+        }
+
+        if (gameOver) {
+            return;
         }
 
         JButton cellButton = cm.getCellButton();
@@ -510,11 +528,13 @@ public class GUI extends javax.swing.JFrame {
 
     private void cellActionLeftClicked(CellMap cm) {
         if (!running) {
-            running = true;
-            game.setRandomMines(cm.getPosition(), level);
+            firstClick(cm);
         }
 
-        JButton cellButton = cm.getCellButton();
+        if (gameOver) {
+            return;
+        }
+
         Cell cellData = cm.getCellData();
 
         State s = cellData.getState();
@@ -525,25 +545,23 @@ public class GUI extends javax.swing.JFrame {
             }
 
             case flagged -> {
-                updateFlagCount(true);
-                cellButton.setText("");
                 openCell(cm);
             }
         }
+        this.requestFocusInWindow();
     }
 
     private void openCell(CellMap cm) {
         Point position = cm.getPosition();
-        //JButton cellButton = cm.getCellButton();
         Cell cellData = cm.getCellData();
 
         if (cellData.isMinedCell()) {
             running = false;
-            revealMines();
+            gameOver = true;
         } else {
-            //cellData.setState(opened);
             openCellsRecursively(position.x, position.y);
         }
+        checkGameState();
     }
 
     private void openCellsRecursively(int i, int j) {
@@ -555,7 +573,13 @@ public class GUI extends javax.swing.JFrame {
         if (cellData.isOpened()) {
             return;
         }
+
+        if (cellData.getState() == flagged) {
+            updateFlagCount(true);
+        }
+
         cellData.setState(opened);
+        cellButton.setForeground(Color.BLACK);
 
         int adjacentMines = cellData.getAdjacentMines();
         if (!cellData.isMinedCell()) {
@@ -568,16 +592,41 @@ public class GUI extends javax.swing.JFrame {
             cellData.setState(opened);
             cellButton.setText(Integer.toString(cellData.getAdjacentMines(), 10));
             cellButton.setBackground(Color.LIGHT_GRAY);
+            cellsRevealed++;
         }
     }
 
-    private void revealMines() {
+    private void revealMines(boolean lose) {
         var mines = game.getSettedMines();
 
-        mines.forEach((mine) -> {
+        mines.forEach((var mine) -> {
             CellMap cm = map[mine.x][mine.y];
-            cm.getCellButton().setBackground(Color.red);
+            JButton cellButton = cm.getCellButton();
+
+            if (lose) {
+                cellButton.setBackground(Color.decode("#b01d06"));
+            } else {
+                cellButton.setBackground(Color.decode("#05B062"));
+            }
+
+            cellButton.setForeground(Color.BLACK);
+            cellButton.setText("\u25ce");
         });
+    }
+
+    private void checkGameState() {
+        if (gameOver) {
+            labelFlags.setText("Game Over! Você perdeu.");
+            revealMines(true);
+            this.setSize(600, 600);
+            panelGame.setSize(10, 10);
+        }
+        if (game.gameWin(cellsRevealed)) {
+            labelFlags.setText("Parabéns! Você ganhou.");
+            revealMines(false);
+            this.setSize(600, 600);
+            panelGame.setSize(10, 10);
+        }
     }
 
     public void printBoard() {
