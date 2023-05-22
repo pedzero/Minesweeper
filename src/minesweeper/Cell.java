@@ -8,7 +8,7 @@ public class Cell {
 
     private State state;
     private boolean minedCell;
-    private int adjascentMines;
+    private int adjacentMines;
     
     public enum State {
         closed('\u2800'),
@@ -30,12 +30,12 @@ public class Cell {
         state = State.closed;
     }
 
-    public int getAdjascentMines() {
-        return adjascentMines;
+    public int getAdjacentMines() {
+        return adjacentMines;
     }
 
-    public void setAdjascentMines(int adjascentMines) {
-        this.adjascentMines = adjascentMines;
+    public void setAdjacentMines(int adjacentMines) {
+        this.adjacentMines = adjacentMines;
     }
 
     public State getState() {

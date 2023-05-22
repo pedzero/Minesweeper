@@ -291,13 +291,13 @@ public class GUI extends javax.swing.JFrame {
     }//GEN-LAST:event_radioButtonCustomStateChanged
 
     private void buttonStartGameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonStartGameActionPerformed
+        if (running) {
+            running = false;
+        }
+
         setGameSettings();
-
-        game = new Board(sizeX, sizeY);
-        running = true;
-        game.setRandomMines(level);
-
         createBoard();
+        
         flagsCount = game.getMineCount();
         tabbedPanel.setSelectedComponent(panelGame);
     }//GEN-LAST:event_buttonStartGameActionPerformed
@@ -354,11 +354,11 @@ public class GUI extends javax.swing.JFrame {
         if (selectedButton == radioButtonEasy.getModel()) {
             sizeX = 10;
             sizeY = 10;
-            level = 55;
+            level = 52;
         } else if (selectedButton == radioButtonNormal.getModel()) {
             sizeX = 16;
             sizeY = 16;
-            level = 75;
+            level = 71;
         } else if (selectedButton == radioButtonHard.getModel()) {
             sizeX = 21;
             sizeY = 21;
@@ -390,6 +390,8 @@ public class GUI extends javax.swing.JFrame {
     private void createBoard() {
 
         emptyBoard();
+        
+        game = new Board(sizeX, sizeY);
 
         Cell[][] board = game.get();
         int gameSizeX = board.length;
@@ -415,7 +417,6 @@ public class GUI extends javax.swing.JFrame {
         }
         panelGame.revalidate();
         panelGame.repaint();
-        printBoard();
     }
 
     private void emptyBoard() {
@@ -483,7 +484,8 @@ public class GUI extends javax.swing.JFrame {
 
     private void cellActionRightClicked(CellMap cm) {
         if (!running) {
-            return;
+            running = true;
+            game.setRandomMines(cm.getPosition(), level);
         }
 
         JButton cellButton = cm.getCellButton();
@@ -508,7 +510,8 @@ public class GUI extends javax.swing.JFrame {
 
     private void cellActionLeftClicked(CellMap cm) {
         if (!running) {
-            return;
+            running = true;
+            game.setRandomMines(cm.getPosition(), level);
         }
 
         JButton cellButton = cm.getCellButton();
@@ -554,16 +557,16 @@ public class GUI extends javax.swing.JFrame {
         }
         cellData.setState(opened);
 
-        int adjascentMines = cellData.getAdjascentMines();
+        int adjacentMines = cellData.getAdjacentMines();
         if (!cellData.isMinedCell()) {
-            if (adjascentMines == 0) {
+            if (adjacentMines == 0) {
                 openCellsRecursively(position.x, Integer.max(0, (position.y - 1)));
                 openCellsRecursively(position.x, Integer.min(sizeY - 1, (position.y + 1)));
                 openCellsRecursively(Integer.min(sizeX - 1, (position.x + 1)), position.y);
                 openCellsRecursively(Integer.max(0, (position.x - 1)), position.y);
             }
             cellData.setState(opened);
-            cellButton.setText(Integer.toString(cellData.getAdjascentMines(), 10));
+            cellButton.setText(Integer.toString(cellData.getAdjacentMines(), 10));
             cellButton.setBackground(Color.LIGHT_GRAY);
         }
     }
@@ -580,7 +583,7 @@ public class GUI extends javax.swing.JFrame {
     public void printBoard() {
         for (int i = 0; i < game.get().length; i++) {
             for (int j = 0; j < game.get()[0].length; j++) {
-                System.out.print((char) (game.get()[j][i].isMinedCell() == true ? 'X' : (game.get()[j][i].getAdjascentMines() + 48)));
+                System.out.print((char) (game.get()[j][i].isMinedCell() == true ? 'X' : (game.get()[j][i].getAdjacentMines() + 48)));
                 System.out.print(" ");
 
             }
