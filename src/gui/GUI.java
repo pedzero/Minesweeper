@@ -8,10 +8,8 @@ import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
 import com.formdev.flatlaf.*;
-import map.*;
 import minesweeper.*;
 import minesweeper.Cell.State;
-import static minesweeper.Cell.State.*;
 
 /**
  *
@@ -21,16 +19,43 @@ public class GUI extends javax.swing.JFrame {
 
     private final int defaultSize = 10;
     private final int cellSize = 20;
-    private final List<Component> boardCells = new ArrayList<>();
+    private final List<Component> addedCells = new ArrayList<>();
 
     private Board game;
-    private CellMap[][] map;
-    private boolean running, gameOver;
-    private int sizeX = defaultSize;
-    private int sizeY = defaultSize;
-    private int level = 60;
-    private int flagsCount;
-    private int cellsRevealed;
+    private JButton[][] cellsBoard;
+    private int width = defaultSize;
+    private int height = defaultSize;
+    private int level;
+
+    public enum MineAdjacentColor {
+        zero("#000000"),
+        one("#24A6B9"),
+        two("#009F94"),
+        three("#209462"),
+        four("#51852A"),
+        five("#767000"),
+        six("#965300"),
+        seven("#B01D06"),
+        eight("#6507A7");
+
+        private final String hexCode;
+
+        MineAdjacentColor(String hexCode) {
+            this.hexCode = hexCode;
+        }
+
+        public String getHexCode() {
+            return hexCode;
+        }
+
+        public static MineAdjacentColor getColorFromMines(int adjacentMinesCount) {
+            if (adjacentMinesCount >= 0 && adjacentMinesCount <= 8) {
+                return MineAdjacentColor.values()[adjacentMinesCount];
+            } else {
+                return MineAdjacentColor.values()[0];
+            }
+        }
+    }
 
     public GUI() {
         initComponents();
@@ -71,7 +96,7 @@ public class GUI extends javax.swing.JFrame {
         setPreferredSize(new java.awt.Dimension(600, 600));
 
         buttonNewGame.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        buttonNewGame.setText("Novo Jogo");
+        buttonNewGame.setText("New Game");
         buttonNewGame.setRequestFocusEnabled(false);
         buttonNewGame.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -88,15 +113,15 @@ public class GUI extends javax.swing.JFrame {
 
         buttonGroup.add(radioButtonEasy);
         radioButtonEasy.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        radioButtonEasy.setText("Fácil");
+        radioButtonEasy.setText("Easy");
 
         buttonGroup.add(radioButtonNormal);
         radioButtonNormal.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        radioButtonNormal.setText("Médio");
+        radioButtonNormal.setText("Normal");
 
         buttonGroup.add(radioButtonHard);
         radioButtonHard.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        radioButtonHard.setText("Difícil");
+        radioButtonHard.setText("Hard");
 
         buttonGroup.add(radioButtonCustom);
         radioButtonCustom.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
@@ -109,11 +134,11 @@ public class GUI extends javax.swing.JFrame {
 
         labelLevel.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
         labelLevel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        labelLevel.setText("Nível");
+        labelLevel.setText("Mode");
 
         labelBoardSize.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
         labelBoardSize.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        labelBoardSize.setText("Tamanho do Tabuleiro");
+        labelBoardSize.setText("Board Size");
 
         sliderLevel.addChangeListener(new javax.swing.event.ChangeListener() {
             public void stateChanged(javax.swing.event.ChangeEvent evt) {
@@ -123,7 +148,7 @@ public class GUI extends javax.swing.JFrame {
 
         labelDifficulty.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
         labelDifficulty.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        labelDifficulty.setText("Dificuldade");
+        labelDifficulty.setText("Difficulty");
 
         labelSettedLevel.setFont(new java.awt.Font("Segoe UI", 0, 16)); // NOI18N
         labelSettedLevel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -206,7 +231,7 @@ public class GUI extends javax.swing.JFrame {
                 .addContainerGap(10, Short.MAX_VALUE))
         );
 
-        tabbedPanel.addTab("Configurar", panelSettings);
+        tabbedPanel.addTab("Settings", panelSettings);
 
         javax.swing.GroupLayout panelGameLayout = new javax.swing.GroupLayout(panelGame);
         panelGame.setLayout(panelGameLayout);
@@ -219,10 +244,10 @@ public class GUI extends javax.swing.JFrame {
             .addGap(0, 462, Short.MAX_VALUE)
         );
 
-        tabbedPanel.addTab("Jogo", panelGame);
+        tabbedPanel.addTab("Play", panelGame);
 
         buttonClose.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        buttonClose.setText("Fechar");
+        buttonClose.setText("Close");
         buttonClose.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 buttonCloseActionPerformed(evt);
@@ -230,7 +255,7 @@ public class GUI extends javax.swing.JFrame {
         });
 
         buttonStartGame.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        buttonStartGame.setText("Começar");
+        buttonStartGame.setText("Start");
         buttonStartGame.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 buttonStartGameActionPerformed(evt);
@@ -265,7 +290,7 @@ public class GUI extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(tabbedPanel, javax.swing.GroupLayout.PREFERRED_SIZE, 488, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(separatorMainPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -292,9 +317,6 @@ public class GUI extends javax.swing.JFrame {
     }//GEN-LAST:event_radioButtonCustomStateChanged
 
     private void buttonStartGameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonStartGameActionPerformed
-        if (running) {
-            running = false;
-        }
         labelFlags.setText("");
 
         setGameSettings();
@@ -332,6 +354,11 @@ public class GUI extends javax.swing.JFrame {
         this.requestFocusInWindow();
     }//GEN-LAST:event_tabbedPanelStateChanged
 
+    /**
+     * Prevents modification of custom settings.
+     *
+     * @param visible True to editable, false otherwise.
+     */
     private void setCustomSettingsVisibility(boolean visible) {
         labelDifficulty.setEnabled(visible);
         labelBoardSize.setEnabled(visible);
@@ -341,142 +368,180 @@ public class GUI extends javax.swing.JFrame {
         textFieldLengthY.setEnabled(visible);
     }
 
+    /**
+     * Start the configuration components.
+     */
     private void initSettings() {
         setCustomSettingsVisibility(false);
         sliderLevel.setMaximum(100);
         sliderLevel.setMinimum(40);
-        sliderLevel.setValue(level);
+        sliderLevel.setValue(60);
         buttonGroup.setSelected(radioButtonNormal.getModel(), true);
     }
 
+    /**
+     * Defines configuration values ​​for each selected level.
+     */
     private void setGameSettings() {
         ButtonModel selectedButton = buttonGroup.getSelection();
 
         if (selectedButton == radioButtonEasy.getModel()) {
-            sizeX = 10;
-            sizeY = 10;
+            width = 10;
+            height = 10;
             level = 52;
         } else if (selectedButton == radioButtonNormal.getModel()) {
-            sizeX = 16;
-            sizeY = 16;
+            width = 16;
+            height = 16;
             level = 71;
         } else if (selectedButton == radioButtonHard.getModel()) {
-            sizeX = 21;
-            sizeY = 21;
+            width = 21;
+            height = 21;
             level = 95;
         } else {
             setCustomSettings();
         }
     }
 
+    /**
+     * Defines configuration values ​​for custom level.
+     */
     private void setCustomSettings() {
         String textFXValue = textFieldLengthX.getText();
         String textFYValue = textFieldLengthY.getText();
 
         if (textFXValue.equals("")) {
-            sizeX = defaultSize;
+            width = defaultSize;
         } else {
-            sizeX = Integer.max(Integer.min(Integer.parseInt(textFXValue), 21), 10);
-            textFieldLengthX.setText(Integer.toString(sizeX));
+            width = Integer.max(Integer.min(Integer.parseInt(textFXValue), 21), 10);
+            textFieldLengthX.setText(Integer.toString(width));
         }
 
         if (textFYValue.equals("")) {
-            sizeY = defaultSize;
+            height = defaultSize;
         } else {
-            sizeY = Integer.max(Integer.min(Integer.parseInt(textFXValue), 21), 10);
-            textFieldLengthY.setText(Integer.toString(sizeY));
+            height = Integer.max(Integer.min(Integer.parseInt(textFXValue), 21), 10);
+            textFieldLengthY.setText(Integer.toString(height));
         }
 
         level = sliderLevel.getValue();
     }
 
+    /**
+     * Apply the methods for creating the board.
+     */
     private void createBoard() {
 
         emptyBoard();
-
-        gameOver = false;
-        cellsRevealed = 0;
-        game = new Board(sizeX, sizeY);
-
-        Cell[][] board = game.get();
-        int gameSizeX = board.length;
-        int gameSizeY = board[0].length;
-        map = new CellMap[gameSizeX][gameSizeY];
+        game = new Board(width, height, level);
 
         setGamePanelSize();
+        initCellsBoard(panelGame, Color.decode("#353535"));
 
-        for (int i = 0; i < gameSizeX; i++) {
-            for (int j = 0; j < gameSizeY; j++) {
-                CellMap cm = createBoardCell(panelGame, Color.GRAY, Color.decode("#b01d06"), i, j);
-                cm.getCellButton().addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseClicked(MouseEvent e) {
-                        if (SwingUtilities.isLeftMouseButton(e)) {
-                            cellActionLeftClicked(cm);
-                        } else if (SwingUtilities.isRightMouseButton(e)) {
-                            cellActionRightClicked(cm);
-                        }
-                    }
-                });
-            }
-        }
         panelGame.revalidate();
         panelGame.repaint();
     }
 
+    /**
+     * Clears components and attributes from the previous game.
+     */
     private void emptyBoard() {
         for (Component c : panelGame.getComponents()) {
-            if (boardCells.contains(c)) {
+            if (addedCells.contains(c)) {
                 panelGame.remove(c);
             }
         }
-        boardCells.clear();
-        map = null;
+        addedCells.clear();
+        game = null;
     }
 
-    private void setSettingPanelSize() {
-        this.setSize(600, 600);
-    }
+    /**
+     * Create the buttons for each cell on the board.
+     *
+     * @param panel Panel where the buttons will be inserted.
+     * @param bgColor Initial color of the buttons.
+     */
+    private void initCellsBoard(JPanel panel, Color bgColor) {
+        cellsBoard = new JButton[width][height];
 
-    private void setGamePanelSize() {
-        if (game != null) {
-            int gameSizeX = game.get().length;
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                JButton cell = new JButton();
+                cellsBoard[i][j] = cell;
+                Font font = new Font("Segoe UI Symbol", Font.PLAIN, 10);
+                Point position = new Point(i, j);
 
-            this.setSize(Integer.max((gameSizeX * cellSize) + 70, 267), 600);
-            panelGame.setSize(10, 10);
-            checkGameState();
+                cell.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        if (SwingUtilities.isLeftMouseButton(e)) {
+                            cellActionLeftClicked(position);
+                        } else if (SwingUtilities.isRightMouseButton(e)) {
+                            cellActionRightClicked(position);
+                        }
+                        updateGamePanel();
+                    }
+                });
+
+                addedCells.addAll(Arrays.asList(cell));
+                cell.setBounds((cellSize * (i + 1)), (cellSize * (j + 1)), cellSize, cellSize);
+                cell.setBackground(bgColor);
+                cell.setFont(font);
+                panel.add(cell);
+            }
         }
     }
 
-    private CellMap createBoardCell(JPanel panel, Color bgColor, Color fgColor, int i, int j) {
-        CellMap cm = new CellMap(game.get()[i][j], new Point(i, j));
-        map[i][j] = cm;
-
-        Font font = new Font("Segoe UI Symbol", Font.PLAIN, 10);
-
-        boardCells.addAll(Arrays.asList(cm.getCellButton()));
-        cm.getCellButton().setBounds((cellSize * (i + 1)), (cellSize * (j + 1)), cellSize, cellSize);
-        cm.getCellButton().setBackground(bgColor);
-        cm.getCellButton().setForeground(fgColor);
-        cm.getCellButton().setFont(font);
-        panel.add(cm.getCellButton());
-
-        return cm;
+    private void cellActionLeftClicked(Point position) {
+        game.openCell(position);
     }
 
-    private void updateFlagCount(boolean addFlag) {
-        if (addFlag) {
-            flagsCount++;
+    private void cellActionRightClicked(Point position) {
+        game.flagCell(position);
+    }
+
+    /**
+     * Updates components on every user click.
+     */
+    private void updateGamePanel() {
+        updateButtonCells();
+        updateFlagCount();
+        checkGameState();
+        this.requestFocusInWindow();
+    }
+
+    /**
+     * Updates the attributes of every button in the game.
+     */
+    private void updateButtonCells() {
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                Cell cellData = game.getBoard()[i][j];
+                JButton cellButton = cellsBoard[i][j];
+
+                if (cellData.isFlagged()) {
+                    cellButton.setForeground(Color.decode("#B01D06"));
+                    cellButton.setText(Character.toString(State.flagged.getChar()));
+                }
+                if (cellData.isOpened()) {
+                    int adjacentMinesCount = cellData.getAdjacentMinesCount();
+                    MineAdjacentColor color = MineAdjacentColor.getColorFromMines(adjacentMinesCount);
+
+                    cellButton.setBackground(Color.decode("#CFCFCF"));
+                    cellButton.setForeground(Color.decode(color.getHexCode()));
+                    cellButton.setText(Integer.toString(adjacentMinesCount));
+                }
+                if (cellData.isClosed()) {
+                    cellButton.setForeground(Color.BLACK);
+                    cellButton.setText("");
+                }
+            }
         }
-        setFlagCountText();
     }
 
+    /**
+     * Update flag count.
+     */
     private void updateFlagCount() {
-        flagsCount--;
-        setFlagCountText();
-    }
-
-    private void setFlagCountText() {
         StringBuilder str = new StringBuilder();
 
         str.append("<html>\n");
@@ -484,126 +549,23 @@ public class GUI extends javax.swing.JFrame {
         str.append(Cell.State.flagged.getChar());
         str.append("</font>");
         str.append(" ");
-        str.append(Integer.toString(flagsCount));
+        str.append(Integer.toString(game.getFlagsCount()));
 
         labelFlags.setText(str.toString());
     }
 
-    private void firstClick(CellMap cm) {
-        running = true;
-        game.setRandomMines(cm.getPosition(), level);
-        flagsCount = game.getMineCount();
-        updateFlagCount(false);
-        printBoard();
-    }
-
-    private void cellActionRightClicked(CellMap cm) {
-        if (!running) {
-            firstClick(cm);
-        }
-
-        if (gameOver) {
-            return;
-        }
-
-        JButton cellButton = cm.getCellButton();
-        Cell cellData = cm.getCellData();
-
-        State s = cellData.getState();
-
-        switch (s) {
-            case closed -> {
-                updateFlagCount();
-                cellButton.setText(Character.toString(Cell.State.flagged.getChar()));
-                cellData.setState(flagged);
-            }
-
-            case flagged -> {
-                updateFlagCount(true);
-                cellButton.setText("");
-                cellData.setState(closed);
-            }
-        }
-    }
-
-    private void cellActionLeftClicked(CellMap cm) {
-        if (!running) {
-            firstClick(cm);
-        }
-
-        if (gameOver) {
-            return;
-        }
-
-        Cell cellData = cm.getCellData();
-
-        State s = cellData.getState();
-
-        switch (s) {
-            case closed -> {
-                openCell(cm);
-            }
-
-            case flagged -> {
-                openCell(cm);
-            }
-        }
-        this.requestFocusInWindow();
-    }
-
-    private void openCell(CellMap cm) {
-        Point position = cm.getPosition();
-        Cell cellData = cm.getCellData();
-
-        if (cellData.isMinedCell()) {
-            running = false;
-            gameOver = true;
-        } else {
-            openCellsRecursively(position.x, position.y);
-        }
-        checkGameState();
-    }
-
-    private void openCellsRecursively(int i, int j) {
-        CellMap cm = map[i][j];
-        Cell cellData = cm.getCellData();
-        Point position = cm.getPosition();
-        JButton cellButton = cm.getCellButton();
-
-        if (cellData.isOpened()) {
-            return;
-        }
-
-        if (cellData.getState() == flagged) {
-            updateFlagCount(true);
-        }
-
-        cellData.setState(opened);
-        cellButton.setForeground(Color.BLACK);
-
-        int adjacentMines = cellData.getAdjacentMines();
-        if (!cellData.isMinedCell()) {
-            if (adjacentMines == 0) {
-                openCellsRecursively(position.x, Integer.max(0, (position.y - 1)));
-                openCellsRecursively(position.x, Integer.min(sizeY - 1, (position.y + 1)));
-                openCellsRecursively(Integer.min(sizeX - 1, (position.x + 1)), position.y);
-                openCellsRecursively(Integer.max(0, (position.x - 1)), position.y);
-            }
-            cellData.setState(opened);
-            cellButton.setText(Integer.toString(cellData.getAdjacentMines(), 10));
-            cellButton.setBackground(Color.LIGHT_GRAY);
-            cellsRevealed++;
-        }
-    }
-
-    private void revealMines(boolean lose) {
+    /**
+     * Reveals the mines on the board.
+     *
+     * @param lost True for lost game.
+     */
+    private void revealMines(boolean lost) {
         var mines = game.getSettedMines();
 
         mines.forEach((var mine) -> {
-            CellMap cm = map[mine.x][mine.y];
-            JButton cellButton = cm.getCellButton();
+            JButton cellButton = cellsBoard[mine.x][mine.y];
 
-            if (lose) {
+            if (lost) {
                 cellButton.setBackground(Color.decode("#b01d06"));
             } else {
                 cellButton.setBackground(Color.decode("#05B062"));
@@ -614,31 +576,34 @@ public class GUI extends javax.swing.JFrame {
         });
     }
 
+    /**
+     * Checks whether the game was won or lost.
+     */
     private void checkGameState() {
-        if (gameOver) {
-            labelFlags.setText("Game Over! Você perdeu.");
+        if (game.isLost()) {
+            labelFlags.setText("Game Over! You lost.");
             revealMines(true);
             this.setSize(600, 600);
             panelGame.setSize(10, 10);
         }
-        if (game.gameWin(cellsRevealed)) {
-            labelFlags.setText("Parabéns! Você ganhou.");
+        if (game.isWon()) {
+            labelFlags.setText("Congratulations, you won.");
             revealMines(false);
             this.setSize(600, 600);
             panelGame.setSize(10, 10);
         }
     }
 
-    public void printBoard() {
-        for (int i = 0; i < game.get().length; i++) {
-            for (int j = 0; j < game.get()[0].length; j++) {
-                System.out.print((char) (game.get()[j][i].isMinedCell() == true ? 'X' : (game.get()[j][i].getAdjacentMines() + 48)));
-                System.out.print(" ");
+    private void setSettingPanelSize() {
+        this.setSize(600, 600);
+    }
 
-            }
-            System.out.println("");
+    private void setGamePanelSize() {
+        if (game != null) {
+            this.setSize(Integer.max((width * cellSize) + 70, 267), 600);
+            panelGame.setSize(10, 10);
+            checkGameState();
         }
-        System.out.println("\n");
     }
 
     public static void main(String args[]) {

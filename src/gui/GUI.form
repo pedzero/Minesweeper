@@ -58,7 +58,7 @@
           <Group type="102" alignment="0" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
               <Component id="tabbedPanel" min="-2" pref="488" max="-2" attributes="0"/>
-              <EmptySpace type="unrelated" max="32767" attributes="0"/>
+              <EmptySpace max="32767" attributes="0"/>
               <Component id="separatorMainPanel" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="32767" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
@@ -80,7 +80,7 @@
         <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
           <Font name="Segoe UI" size="14" style="0"/>
         </Property>
-        <Property name="text" type="java.lang.String" value="Novo Jogo"/>
+        <Property name="text" type="java.lang.String" value="New Game"/>
         <Property name="requestFocusEnabled" type="boolean" value="false"/>
       </Properties>
       <Events>
@@ -102,8 +102,8 @@
         <Container class="javax.swing.JPanel" name="panelSettings">
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
-              <JTabbedPaneConstraints tabName="Configurar">
-                <Property name="tabTitle" type="java.lang.String" value="Configurar"/>
+              <JTabbedPaneConstraints tabName="Settings">
+                <Property name="tabTitle" type="java.lang.String" value="Settings"/>
               </JTabbedPaneConstraints>
             </Constraint>
           </Constraints>
@@ -198,7 +198,7 @@
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                   <Font name="Segoe UI" size="14" style="0"/>
                 </Property>
-                <Property name="text" type="java.lang.String" value="F&#xe1;cil"/>
+                <Property name="text" type="java.lang.String" value="Easy"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JRadioButton" name="radioButtonNormal">
@@ -209,7 +209,7 @@
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                   <Font name="Segoe UI" size="14" style="0"/>
                 </Property>
-                <Property name="text" type="java.lang.String" value="M&#xe9;dio"/>
+                <Property name="text" type="java.lang.String" value="Normal"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JRadioButton" name="radioButtonHard">
@@ -220,7 +220,7 @@
                 <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
                   <Font name="Segoe UI" size="14" style="0"/>
                 </Property>
-                <Property name="text" type="java.lang.String" value="Dif&#xed;cil"/>
+                <Property name="text" type="java.lang.String" value="Hard"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JRadioButton" name="radioButtonCustom">
@@ -243,7 +243,7 @@
                   <Font name="Segoe UI" size="16" style="0"/>
                 </Property>
                 <Property name="horizontalAlignment" type="int" value="0"/>
-                <Property name="text" type="java.lang.String" value="N&#xed;vel"/>
+                <Property name="text" type="java.lang.String" value="Mode"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JLabel" name="labelBoardSize">
@@ -252,7 +252,7 @@
                   <Font name="Segoe UI" size="16" style="0"/>
                 </Property>
                 <Property name="horizontalAlignment" type="int" value="0"/>
-                <Property name="text" type="java.lang.String" value="Tamanho do Tabuleiro"/>
+                <Property name="text" type="java.lang.String" value="Board Size"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JSlider" name="sliderLevel">
@@ -266,7 +266,7 @@
                   <Font name="Segoe UI" size="16" style="0"/>
                 </Property>
                 <Property name="horizontalAlignment" type="int" value="0"/>
-                <Property name="text" type="java.lang.String" value="Dificuldade"/>
+                <Property name="text" type="java.lang.String" value="Difficulty"/>
               </Properties>
             </Component>
             <Component class="javax.swing.JLabel" name="labelSettedLevel">
@@ -306,8 +306,8 @@
         <Container class="javax.swing.JPanel" name="panelGame">
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
-              <JTabbedPaneConstraints tabName="Jogo">
-                <Property name="tabTitle" type="java.lang.String" value="Jogo"/>
+              <JTabbedPaneConstraints tabName="Play">
+                <Property name="tabTitle" type="java.lang.String" value="Play"/>
               </JTabbedPaneConstraints>
             </Constraint>
           </Constraints>
@@ -332,7 +332,7 @@
         <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
           <Font name="Segoe UI" size="14" style="0"/>
         </Property>
-        <Property name="text" type="java.lang.String" value="Fechar"/>
+        <Property name="text" type="java.lang.String" value="Close"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonCloseActionPerformed"/>
@@ -343,7 +343,7 @@
         <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
           <Font name="Segoe UI" size="14" style="0"/>
         </Property>
-        <Property name="text" type="java.lang.String" value="Come&#xe7;ar"/>
+        <Property name="text" type="java.lang.String" value="Start"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="buttonStartGameActionPerformed"/>
