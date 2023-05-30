@@ -22,7 +22,7 @@ public class Board {
     private final int width, height;
 
     private GameState state;
-    private int controlSafePointsAmount;
+    private int controlSafePointsCount;
     private int maxMineCount;
     private int flagsCount;
     private int cellsRevealed;
@@ -63,6 +63,10 @@ public class Board {
         }
 
         if (state == GameState.over) {
+            return;
+        }
+
+        if (flagsCount == 0) {
             return;
         }
 
@@ -129,8 +133,8 @@ public class Board {
             level = 100;
         }
 
-        float levelMultiplier = ((float) level / 100) * 0.22F;
-        maxMineCount = (Math.round((width * height) * levelMultiplier));
+        float mineDensity = ((float) level / 100) * 0.22F;
+        maxMineCount = (Math.round((width * height) * mineDensity));
         flagsCount = 0;
         cellsRevealed = 0;
         state = GameState.created;
@@ -158,7 +162,7 @@ public class Board {
             createMine(randomPos);
 
             // 90% chance to place two adjacent mines.
-            if (random.nextDouble() <= 0.9) {
+            if (random.nextDouble() <= 0.8) {
                 List<Point> adjacentPositions = getAdjacentPositions(randomPos);
                 if (!adjacentPositions.isEmpty()) {
                     int randomIndex;
@@ -166,7 +170,7 @@ public class Board {
                     do {
                         randomIndex = random.nextInt(adjacentPositions.size());
                         adjacentPosition = adjacentPositions.get(randomIndex);
-                    } while (adjacentPosition.equals(startPosition));
+                    } while (adjacentPosition.equals(startPosition) || board[adjacentPosition.x][adjacentPosition.y].isMinedCell());
 
                     createMine(adjacentPosition);
                     i++;
@@ -206,15 +210,14 @@ public class Board {
             flagsCount++;
         }
         cellData.setState(opened);
+        cellsRevealed++;
 
         int adjacentMines = cellData.getAdjacentMinesCount();
         if (!cellData.isMinedCell() && adjacentMines == 0) {
-
             List<Point> adjacentPositions = getAdjacentPositions(position);
             for (Point adjacentPosition : adjacentPositions) {
                 openCellsRecursively(adjacentPosition);
             }
-            cellsRevealed++;
         }
     }
 
@@ -224,6 +227,9 @@ public class Board {
      * @param position Position where the mine will be created.
      */
     private void createMine(Point position) {
+        if (board[position.x][position.y].isMinedCell()) {
+            return;
+        }
         board[position.x][position.y].setMinedCell(true);
         settedMines.add(new Point(position.x, position.y));
         flagsCount++;
@@ -238,8 +244,8 @@ public class Board {
         Random random = new Random();
         float safePointsMultiplier = random.nextFloat(0.07F, 0.14F);
 
-        int safePointsAmount = Math.round((width * height) * safePointsMultiplier);
-        controlSafePointsAmount = safePointsAmount;
+        int safePointsCount = Math.round((width * height) * safePointsMultiplier);
+        controlSafePointsCount = safePointsCount;
 
         initializeSafeAreaStructure(startPosition);
         createSafeAreaRecursively(startPosition);
@@ -271,12 +277,12 @@ public class Board {
             return;
         }
 
-        if (controlSafePointsAmount <= 0) {
+        if (controlSafePointsCount <= 0) {
             return;
         }
 
         safePoints[position.x][position.y] = true;
-        controlSafePointsAmount--;
+        controlSafePointsCount--;
 
         List<Point> adjacentPositions = getAdjacentPositions(position);
         Collections.shuffle(adjacentPositions);
@@ -380,7 +386,7 @@ public class Board {
     }
 
     public boolean isWon() {
-        return cellsRevealed == ((width * height) - settedMines.size());
+        return (flagsCount == 0) && (cellsRevealed + settedMines.size() == (width * height));
     }
 
     public boolean isLost() {

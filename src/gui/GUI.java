@@ -30,13 +30,13 @@ public class GUI extends javax.swing.JFrame {
     public enum MineAdjacentColor {
         zero("#000000"),
         one("#24A6B9"),
-        two("#009F94"),
-        three("#209462"),
-        four("#51852A"),
-        five("#767000"),
-        six("#965300"),
-        seven("#B01D06"),
-        eight("#6507A7");
+        two("#009D8B"),
+        three("#378F4C"),
+        four("#687A00"),
+        five("#905A00"),
+        six("#B01D06"),
+        seven("#6507A7"),
+        eight("#000000");
 
         private final String hexCode;
 
@@ -433,9 +433,9 @@ public class GUI extends javax.swing.JFrame {
 
         emptyBoard();
         game = new Board(width, height, level);
-
+        
         setGamePanelSize();
-        initCellsBoard(panelGame, Color.decode("#353535"));
+        initCellsBoard(panelGame, Color.decode("#696969"));
 
         panelGame.revalidate();
         panelGame.repaint();
@@ -467,7 +467,7 @@ public class GUI extends javax.swing.JFrame {
             for (int j = 0; j < height; j++) {
                 JButton cell = new JButton();
                 cellsBoard[i][j] = cell;
-                Font font = new Font("Segoe UI Symbol", Font.PLAIN, 10);
+                Font font = new Font("Segoe UI Symbol", Font.BOLD, 12);
                 Point position = new Point(i, j);
 
                 cell.addMouseListener(new MouseAdapter() {
@@ -526,9 +526,14 @@ public class GUI extends javax.swing.JFrame {
                     int adjacentMinesCount = cellData.getAdjacentMinesCount();
                     MineAdjacentColor color = MineAdjacentColor.getColorFromMines(adjacentMinesCount);
 
+                    if (adjacentMinesCount != 0) {
+                        cellButton.setText(Integer.toString(adjacentMinesCount));
+                    } else {
+                        cellButton.setText("");
+                    }
                     cellButton.setBackground(Color.decode("#CFCFCF"));
                     cellButton.setForeground(Color.decode(color.getHexCode()));
-                    cellButton.setText(Integer.toString(adjacentMinesCount));
+
                 }
                 if (cellData.isClosed()) {
                     cellButton.setForeground(Color.BLACK);
